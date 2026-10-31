@@ -1,0 +1,653 @@
+
+/* =========================================================
+   EchoVault Fullscreen Scene Override
+   Import this AFTER cinematic.css in App.jsx.
+========================================================= */
+
+/* The world layer always fills the complete browser viewport */
+.global-haunted-world {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* The artwork itself fills every edge */
+.global-house {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+
+  transform: none !important;
+
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+
+  border: 0 !important;
+}
+
+/* HOME — haunted village across the whole viewport */
+.stage-home .global-house {
+  opacity: 0.24 !important;
+
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(29, 10, 43, 0.17) 0%,
+      rgba(21, 8, 32, 0.34) 58%,
+      rgba(9, 3, 14, 0.72) 100%
+    ),
+    url("/haunted-village.png") !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+
+  filter:
+    saturate(1.35)
+    brightness(0.82)
+    contrast(1.08) !important;
+
+  animation: fullWorldBreathing 18s ease-in-out infinite alternate !important;
+}
+
+/* PRESERVE — mansion from edge to edge */
+.stage-preserve .global-house {
+  opacity: 0.48 !important;
+
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(38, 13, 52, 0.66) 0%,
+      rgba(29, 10, 41, 0.36) 45%,
+      rgba(18, 6, 26, 0.22) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(12, 4, 18, 0.08) 0%,
+      rgba(10, 3, 15, 0.24) 62%,
+      rgba(8, 2, 12, 0.68) 100%
+    ),
+    url("/haunted-mansion.png") !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+
+  filter:
+    saturate(1.28)
+    brightness(0.80)
+    contrast(1.08) !important;
+
+  animation: fullWorldBreathing 18s ease-in-out infinite alternate !important;
+}
+
+/* VAULT — the new skeleton artwork fills the ENTIRE page */
+.stage-vault .global-house {
+  opacity: 0.56 !important;
+
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(20, 7, 31, 0.10) 0%,
+      rgba(20, 7, 31, 0.28) 48%,
+      rgba(8, 3, 13, 0.67) 100%
+    ),
+    url("/vault-skeleton-scene.png") !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+
+  filter:
+    saturate(1.12)
+    brightness(0.77)
+    contrast(1.08) !important;
+
+  animation: vaultSceneAlive 16s ease-in-out infinite alternate !important;
+}
+
+/* MEMORY — haunted mansion fills the full screen */
+.stage-archive .global-house {
+  opacity: 0.44 !important;
+
+  background-image:
+    radial-gradient(
+      circle at 64% 44%,
+      rgba(255, 142, 48, 0.17),
+      transparent 31%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(31, 10, 41, 0.17) 0%,
+      rgba(22, 7, 31, 0.34) 52%,
+      rgba(9, 3, 14, 0.72) 100%
+    ),
+    url("/haunted-mansion.png") !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+
+  filter:
+    saturate(1.15)
+    brightness(0.72)
+    contrast(1.12) !important;
+
+  animation: fullWorldBreathing 18s ease-in-out infinite alternate !important;
+}
+
+@keyframes fullWorldBreathing {
+  from {
+    transform: scale(1.00);
+  }
+
+  to {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes vaultSceneAlive {
+  from {
+    transform: scale(1.00) translateY(0);
+  }
+
+  to {
+    transform: scale(1.035) translateY(-5px);
+  }
+}
+
+/* Keep text readable without hiding the artwork */
+.ev-page,
+.ev-home {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.ev-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(23, 8, 34, 0.08),
+      rgba(18, 6, 26, 0.18)
+    );
+
+  pointer-events: none;
+}
+
+/* Panels more transparent so the full-page artwork remains visible */
+.stage-preserve .glass-panel,
+.stage-vault .archive-card,
+.stage-archive .glass-panel,
+.stage-archive .ghostlight-card,
+.stage-archive .moment-card,
+.stage-archive .ask-card,
+.stage-archive .original-transcript {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(55, 25, 70, 0.82),
+      rgba(26, 12, 38, 0.86)
+    ) !important;
+
+  backdrop-filter:
+    blur(16px)
+    saturate(1.08) !important;
+}
+
+/* =========================================================
+   VAULT — clearly visible slow walking skeleton
+========================================================= */
+
+.stage-vault .walking-skeleton {
+  display: block !important;
+
+  position: fixed !important;
+
+  z-index: 4 !important;
+
+  left: -150px !important;
+  bottom: 4vh !important;
+
+  width: 100px !important;
+  height: 230px !important;
+
+  opacity: 0.58 !important;
+
+  pointer-events: none !important;
+
+  filter:
+    drop-shadow(0 0 8px rgba(255, 242, 212, 0.26))
+    drop-shadow(0 18px 30px rgba(0, 0, 0, 0.55)) !important;
+
+  animation:
+    vaultSkeletonWalk 38s linear infinite !important;
+}
+
+@keyframes vaultSkeletonWalk {
+  0% {
+    transform:
+      translateX(0)
+      translateY(0)
+      scale(0.88);
+
+    opacity: 0;
+  }
+
+  7% {
+    opacity: 0.58;
+  }
+
+  24% {
+    transform:
+      translateX(31vw)
+      translateY(-4px)
+      scale(0.92);
+  }
+
+  50% {
+    transform:
+      translateX(64vw)
+      translateY(2px)
+      scale(0.96);
+  }
+
+  76% {
+    transform:
+      translateX(96vw)
+      translateY(-3px)
+      scale(0.92);
+  }
+
+  93% {
+    opacity: 0.58;
+  }
+
+  100% {
+    transform:
+      translateX(128vw)
+      translateY(0)
+      scale(0.88);
+
+    opacity: 0;
+  }
+}
+
+/* Skeleton face and body visibility */
+.stage-vault .walking-skeleton .skull {
+  width: 56px !important;
+  height: 60px !important;
+
+  margin: 0 auto !important;
+
+  border-radius: 46% !important;
+
+  background:
+    radial-gradient(circle at 34% 42%, #22161e 0 7%, transparent 8%),
+    radial-gradient(circle at 66% 42%, #22161e 0 7%, transparent 8%),
+    radial-gradient(circle at 50% 66%, #22161e 0 8%, transparent 9%),
+    rgba(239, 230, 207, 0.96) !important;
+}
+
+.stage-vault .walking-skeleton .spine {
+  width: 11px !important;
+  height: 88px !important;
+
+  margin: 4px auto !important;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(240, 231, 209, 0.96) 0 8px,
+      rgba(118, 102, 90, 0.90) 9px 11px
+    ) !important;
+}
+
+.stage-vault .walking-skeleton .arm,
+.stage-vault .walking-skeleton .leg {
+  width: 8px !important;
+
+  background:
+    rgba(239, 230, 208, 0.94) !important;
+
+  border-radius: 10px !important;
+}
+
+/* =========================================================
+   MEMORY — bones fall, collect, assemble, then dismantle
+========================================================= */
+
+.stage-archive .skeleton-assembly {
+  display: block !important;
+
+  position: fixed !important;
+
+  z-index: 5 !important;
+
+  right: 5vw !important;
+  bottom: 4vh !important;
+
+  width: 140px !important;
+  height: 245px !important;
+
+  opacity: 0.68 !important;
+
+  pointer-events: none !important;
+
+  filter:
+    drop-shadow(0 0 10px rgba(255, 242, 214, 0.23))
+    drop-shadow(0 18px 28px rgba(0, 0, 0, 0.55)) !important;
+}
+
+.stage-archive .bone {
+  background:
+    rgba(239, 231, 210, 0.96) !important;
+
+  border:
+    1px solid rgba(255, 248, 227, 0.18);
+
+  box-shadow:
+    inset 0 0 5px rgba(111, 93, 80, 0.28);
+
+  animation-duration:
+    12s !important;
+
+  animation-timing-function:
+    cubic-bezier(.55, .05, .3, .98) !important;
+
+  animation-iteration-count:
+    infinite !important;
+}
+
+/* skull */
+.stage-archive .bone-skull {
+  width: 58px !important;
+  height: 62px !important;
+
+  left: 41px !important;
+  top: 0 !important;
+
+  border-radius: 48% !important;
+
+  background:
+    radial-gradient(circle at 34% 42%, #251820 0 7%, transparent 8%),
+    radial-gradient(circle at 66% 42%, #251820 0 7%, transparent 8%),
+    radial-gradient(circle at 50% 66%, #251820 0 8%, transparent 9%),
+    rgba(239, 231, 210, 0.97) !important;
+
+  animation-name:
+    fallingSkull !important;
+}
+
+/* spine */
+.stage-archive .bone-spine {
+  width: 11px !important;
+  height: 92px !important;
+
+  left: 64px !important;
+  top: 64px !important;
+
+  border-radius: 7px !important;
+
+  animation-name:
+    fallingSpine !important;
+}
+
+/* arms */
+.stage-archive .bone-arm-a,
+.stage-archive .bone-arm-b {
+  width: 9px !important;
+  height: 86px !important;
+
+  top: 74px !important;
+
+  border-radius: 8px !important;
+
+  animation-name:
+    fallingArm !important;
+}
+
+.stage-archive .bone-arm-a {
+  left: 30px !important;
+}
+
+.stage-archive .bone-arm-b {
+  right: 30px !important;
+}
+
+/* legs */
+.stage-archive .bone-leg-a,
+.stage-archive .bone-leg-b {
+  width: 10px !important;
+  height: 98px !important;
+
+  top: 150px !important;
+
+  border-radius: 8px !important;
+
+  animation-name:
+    fallingLeg !important;
+}
+
+.stage-archive .bone-leg-a {
+  left: 50px !important;
+}
+
+.stage-archive .bone-leg-b {
+  right: 50px !important;
+}
+
+@keyframes fallingSkull {
+  0% {
+    transform:
+      translate(-140px, -720px)
+      rotate(-180deg);
+
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  28% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  68% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  78% {
+    transform:
+      translate(-5px, 10px)
+      rotate(-7deg);
+  }
+
+  100% {
+    transform:
+      translate(-180px, 360px)
+      rotate(-150deg);
+
+    opacity: 0;
+  }
+}
+
+@keyframes fallingSpine {
+  0% {
+    transform:
+      translate(220px, -780px)
+      rotate(145deg);
+
+    opacity: 0;
+  }
+
+  13% {
+    opacity: 1;
+  }
+
+  33% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  68% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  81% {
+    transform:
+      translate(7px, 18px)
+      rotate(8deg);
+  }
+
+  100% {
+    transform:
+      translate(170px, 390px)
+      rotate(125deg);
+
+    opacity: 0;
+  }
+}
+
+@keyframes fallingArm {
+  0% {
+    transform:
+      translate(-260px, -840px)
+      rotate(260deg);
+
+    opacity: 0;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  38% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  68% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  84% {
+    transform:
+      translate(-14px, 20px)
+      rotate(-18deg);
+  }
+
+  100% {
+    transform:
+      translate(-220px, 420px)
+      rotate(-230deg);
+
+    opacity: 0;
+  }
+}
+
+@keyframes fallingLeg {
+  0% {
+    transform:
+      translate(270px, -900px)
+      rotate(-220deg);
+
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  42% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  68% {
+    transform:
+      translate(0, 0)
+      rotate(0deg);
+
+    opacity: 1;
+  }
+
+  86% {
+    transform:
+      translate(15px, 24px)
+      rotate(14deg);
+  }
+
+  100% {
+    transform:
+      translate(230px, 450px)
+      rotate(210deg);
+
+    opacity: 0;
+  }
+}
+
+/* Keep the existing pumpkin transition above everything */
+.pumpkin-rain {
+  z-index: 9998 !important;
+}
+
+/* Mobile still gets edge-to-edge art */
+@media (max-width: 700px) {
+  .global-house {
+    width: 100vw !important;
+    height: 100vh !important;
+    background-size: cover !important;
+    background-position: center center !important;
+  }
+
+  .stage-vault .walking-skeleton {
+    opacity: 0.45 !important;
+    transform-origin: bottom center;
+  }
+
+  .stage-archive .skeleton-assembly {
+    opacity: 0.54 !important;
+    transform: scale(0.78);
+    transform-origin: bottom right;
+  }
+}
