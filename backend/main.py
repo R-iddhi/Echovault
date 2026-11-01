@@ -467,6 +467,12 @@ app = FastAPI(
 
 @app.on_event("startup")
 def startup_warm_qwen() -> None:
+    # Move Qwen model loading to backend startup, not the first Preserve click.
+    warm_qwen()
+
+
+@app.on_event("startup")
+def startup_warm_qwen() -> None:
     # This runs when the backend starts, not when the user clicks Preserve.
     warm_qwen()
 
