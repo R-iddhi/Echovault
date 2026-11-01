@@ -22,7 +22,7 @@ import {
 import "./cinematic.css";
 import "./fullscreen-scenes.css";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 const VAULT_KEY = "echovault_memories";
 
 const sampleMemory = `Every Diwali, my mother would wake us before sunrise.
