@@ -36,6 +36,72 @@ WHISPER_CPU_THREADS = min(os.cpu_count() or 4, 6)
 EXTRACTION_CACHE_LIMIT = 10
 EXTRACTION_CACHE: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
 
+# Structured output prevents Qwen from returning prose or malformed JSON.
+# The item limits keep responses compact enough for the local 3B model.
+MEMORY_RESPONSE_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "summary": {"type": "string"},
+        "people": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["name", "evidence"],
+                "additionalProperties": False,
+            },
+        },
+        "places": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["name", "evidence"],
+                "additionalProperties": False,
+            },
+        },
+        "traditions": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["name", "evidence"],
+                "additionalProperties": False,
+            },
+        },
+        "moments": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "year": {"type": "string"},
+                    "title": {"type": "string"},
+                    "text": {"type": "string"},
+                    "evidence": {"type": "string"},
+                },
+                "required": ["year", "title", "text", "evidence"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["title", "summary", "people", "places", "traditions", "moments"],
+    "additionalProperties": False,
+}
+
 print("EchoVault: loading Whisper model...")
 whisper_model = WhisperModel(
     WHISPER_MODEL_NAME,
@@ -113,17 +179,23 @@ def parse_json_object(raw_text: str) -> Dict[str, Any]:
 # Qwen - warm model at backend startup and keep it loaded
 # ============================================================
 
-def qwen_request_payload(prompt: str, num_predict: int) -> Dict[str, Any]:
+def qwen_request_payload(
+    prompt: str,
+    num_predict: int,
+    response_format: Any = "json",
+    num_ctx: int = 3072,
+) -> Dict[str, Any]:
     return {
         "model": OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
         "keep_alive": "30m",
-        "format": "json",
+        # Ollama accepts either "json" or a JSON Schema object here.
+        "format": response_format,
         "options": {
             "temperature": 0,
             "num_predict": num_predict,
-            "num_ctx": 2048,
+            "num_ctx": num_ctx,
         },
     }
 
@@ -156,11 +228,18 @@ def ollama_generate(
     prompt: str,
     num_predict: int = 120,
     timeout: int = 120,
+    response_format: Any = "json",
+    num_ctx: int = 3072,
 ) -> str:
     try:
         response = requests.post(
             OLLAMA_URL,
-            json=qwen_request_payload(prompt, num_predict),
+            json=qwen_request_payload(
+                prompt,
+                num_predict,
+                response_format=response_format,
+                num_ctx=num_ctx,
+            ),
             timeout=(5, timeout),
         )
         response.raise_for_status()
@@ -614,46 +693,67 @@ def extract_memory(
 
     prompt = f'''
 You are EchoVault, a careful family-memory preservation assistant.
-
-Read the transcript and extract only details explicitly stated in it.
+Extract only facts explicitly stated in the transcript.
 
 TRANSCRIPT:
 """
 {story}
 """
 
-Return one valid JSON object with exactly these keys:
-{{
-  "title": "short memory title",
-  "summary": "one short factual sentence",
-  "people": [{{"name": "person name or stated relationship", "evidence": "exact supporting transcript sentence"}}],
-  "places": [{{"name": "place name", "evidence": "exact supporting transcript sentence"}}],
-  "traditions": [{{"name": "tradition or repeated practice", "evidence": "exact supporting transcript sentence"}}],
-  "moments": [{{"year": "year or Undated", "title": "short title", "text": "short factual description", "evidence": "exact supporting transcript sentence"}}]
-}}
-
-Rules:
-- Use only the transcript. Never use outside knowledge.
-- Never invent a name, person, place, year, relationship, tradition or event.
-- Evidence must be copied exactly from the transcript.
-- Include no more than 3 people, 3 places, 3 traditions and 3 moments.
-- Keep titles and descriptions short.
-- Use empty arrays for categories not mentioned.
-- Do not repeat an item.
-- Return JSON only.
+Instructions:
+- Return the required structured JSON only.
+- Include at most 2 people, 2 places, 2 traditions and 2 moments.
+- For each item, copy one short, exact supporting sentence from the transcript.
+- Do not invent names, relationships, places, dates, traditions or events.
+- If a category is absent, return an empty array.
+- Keep title, summary and descriptions short.
 '''
 
     raw = ollama_generate(
         prompt,
-        num_predict=320,
-        timeout=150,
+        num_predict=500,
+        timeout=180,
+        response_format=MEMORY_RESPONSE_SCHEMA,
+        num_ctx=3072,
     )
     parsed = parse_json_object(raw)
 
     if not parsed:
+        # One compact retry handles occasional incomplete first responses.
+        retry_prompt = f'''
+Extract the memory details from this transcript. Do not add anything.
+Return the exact required JSON structure. Each array may contain at most
+two entries. Each evidence value must be one exact, short sentence.
+
+TRANSCRIPT:
+"""
+{story}
+"""
+'''
+        raw = ollama_generate(
+            retry_prompt,
+            num_predict=600,
+            timeout=180,
+            response_format=MEMORY_RESPONSE_SCHEMA,
+            num_ctx=3072,
+        )
+        parsed = parse_json_object(raw)
+
+    required_keys = {
+        "title", "summary", "people",
+        "places", "traditions", "moments",
+    }
+    if not parsed or not required_keys.issubset(parsed.keys()):
+        print(
+            "EchoVault: Qwen memory extraction returned incomplete "
+            f"structured data (response length: {len(raw)} characters)."
+        )
         raise HTTPException(
             status_code=502,
-            detail="Qwen did not return valid memory data. Please try again.",
+            detail=(
+                "Qwen could not complete the memory extraction. "
+                "Please retry once. Your transcript has not been lost."
+            ),
         )
 
     result: Dict[str, Any] = {
